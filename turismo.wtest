@@ -1,0 +1,123 @@
+import turismo.*
+
+describe "Parcial de turismo internacional" {
+
+    test "Millas de Pedro" {
+        const pedro = new Turista(edad = 7, millas = 30)
+        cotizacion.valor(1000)
+        
+        assert.equals(30000, pedro.dineroDisponible())
+    }
+    
+    test "Pedro puede entrar a parkAsterix" {
+        const parque = new Categoria(tipo = "Parque", millasRef = 2)
+        const pedro = new Turista(edad = 7, millas = 30)
+        const parkAsterix = new SitioInfantil(precioEntrada = 25000, categoria = parque)
+        cotizacion.valor(1000)
+        
+        assert.that(parkAsterix.puedeSerVisitadoPor(pedro))
+    }
+    
+    test "Pedro no puede entrar a parkAsterix asumiendo cotizacion de 800" {
+        const parque = new Categoria(tipo = "Parque", millasRef = 2)
+        const pedro = new Turista(edad = 7, millas = 30)
+        const parkAsterix = new SitioInfantil(precioEntrada = 25000, categoria = parque)
+        
+        cotizacion.valor(800)
+        assert.notThat(parkAsterix.puedeSerVisitadoPor(pedro))
+    }
+    
+    test "Lara no puede ingresar a la torre Eiffel porque no le alcanza el dinero" {
+        const monumento = new Categoria(tipo = "Monumento", millasRef = 3)
+        const lara = new Turista(edad = 69, millas = 49)
+        const torreEiffel = new SitioConDescuentoParaAncianos(precioEntrada = 50000, categoria = monumento)
+        cotizacion.valor(1000)
+        
+        assert.notThat(torreEiffel.puedeSerVisitadoPor(lara))
+    }
+    
+    test "Lara cumple años y tiene la edad necesaria para visitar la torre Effel" {
+        const monumento = new Categoria(tipo = "Monumento", millasRef = 3)
+        const lara = new Turista(edad = 69, millas = 49)
+        const torreEiffel = new SitioConDescuentoParaAncianos(precioEntrada = 50000, categoria = monumento)
+        cotizacion.valor(1000)
+        
+        lara.cumplirAnios() 
+        lara.cumplirAnios()
+        
+        assert.that(torreEiffel.puedeSerVisitadoPor(lara))
+    }
+    
+    test "Acceso de los turistas a Francia" {
+        const parque = new Categoria(tipo = "Parque", millasRef = 2)
+        const monumento = new Categoria(tipo = "Monumento", millasRef = 3)
+        
+        const pedro = new Turista(edad = 7, millas = 30)
+        const lara = new Turista(edad = 69, millas = 49)
+        const martin = new Turista(edad = 16, millas = 120)
+        
+        const parkAsterix = new SitioInfantil(precioEntrada = 25000, categoria = parque)
+        const torreEiffel = new SitioConDescuentoParaAncianos(precioEntrada = 50000, categoria = monumento)
+        
+        const francia = new Pais()
+        francia.agregarSitio(parkAsterix)
+        francia.agregarSitio(torreEiffel)
+        cotizacion.valor(1000)
+        
+        assert.equals(#{parkAsterix}, francia.sitiosQuePuedeVisitar(pedro))
+        assert.equals(#{parkAsterix, torreEiffel}, francia.sitiosQuePuedeVisitar(martin))
+        assert.equals(#{}, francia.sitiosQuePuedeVisitar(lara))
+    }
+    
+    test "ParkAsterix es el sitio mas visitado por menores" {
+        const parque = new Categoria(tipo = "Parque", millasRef = 2)
+        const pedro = new Turista(edad = 7, millas = 30)
+        const parkAsterix = new SitioInfantil(precioEntrada = 25000, categoria = parque)
+        const francia = new Pais()
+        francia.agregarSitio(parkAsterix)
+        cotizacion.valor(1000)
+        
+        parkAsterix.recibirVisitaDe(pedro)
+        
+        assert.equals(parkAsterix, francia.sitioMasVisitadoPorMenores())
+    }
+    
+    test "Lara no puede visitar ningun sitio, tampoco de Francia" {
+        const monumento = new Categoria(tipo = "Monumento", millasRef = 3)
+        const lara = new Turista(edad = 69, millas = 49)
+        const torreEiffel = new SitioConDescuentoParaAncianos(precioEntrada = 50000, categoria = monumento)
+        const francia = new Pais()
+        francia.agregarSitio(torreEiffel)
+        
+        assert.notThat(francia.fueAlgunaVez(lara))
+    }
+
+    test "el reparto suma millas por cada sitio visitado de sus preferencias" {
+        const museo = new Categoria(tipo = "Museo", millasRef = 3)
+        const vaticano = new Sitio(precioEntrada = 10000, categoria = museo)
+        const louvre = new Sitio(precioEntrada = 5000, categoria = museo)
+        const messi = new Turista(edad = 39, millas = 1000)
+
+        cotizacion.valor(1000)
+
+        messi.agregarPreferencia(museo)
+        vaticano.recibirVisitaDe(messi)
+        louvre.recibirVisitaDe(messi)
+        assert.equals(985, messi.millas())
+
+        messi.repartoDeMillas()
+
+        assert.equals(991, messi.millas())
+    }
+
+    test "el reparto resta millas por cada preferencia declarada y que luego nunca visitó" {
+        const arqueologico = new Categoria(tipo = "Sitio arqueologico", millasRef = 4)
+        const messi = new Turista(edad = 39, millas = 1000)
+
+        messi.agregarPreferencia(arqueologico)
+        assert.equals(1000, messi.millas())
+        messi.repartoDeMillas()
+        assert.equals(960, messi.millas())
+    }
+
+}
